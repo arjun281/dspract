@@ -1,0 +1,791 @@
+1.	Write a program to implement singly linked list as an ADT that supports the following operations:
+i.	Insert an element x at the beginning of the singly linked list
+ii.	Insert an element x at ith position in the singly linked list
+iii.	Remove an element from the beginning of the doubly linked list 
+iv.	Remove an element from ith position in the singly linked list.
+v.	Remove an element from the beginning of the singly linked list
+vi.	Search for an element x in the singly linked list and return its pointer
+
+class Node:
+    """Class representing a Node in the singly linked list."""
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class SinglyLinkedList:
+    """Class representing a Singly Linked List."""
+    def __init__(self):
+        self.head = None
+
+    def insert_at_beginning(self, x):
+        """Insert an element at the beginning."""
+        new_node = Node(x)
+        new_node.next = self.head
+        self.head = new_node
+
+    def insert_at_position(self, x, position):
+        """Insert an element at the ith position (0-based index)."""
+        if position == 0:
+            self.insert_at_beginning(x)
+            return
+        
+        new_node = Node(x)
+        current = self.head
+        for _ in range(position - 1):
+            if current is None:
+                raise IndexError("Position out of bounds")
+            current = current.next
+
+        if current is None:
+            raise IndexError("Position out of bounds")
+        
+        new_node.next = current.next
+        current.next = new_node
+
+    def remove_from_beginning(self):
+        """Remove an element from the beginning."""
+        if self.head is None:
+            raise IndexError("List is empty")
+        removed_data = self.head.data
+        self.head = self.head.next
+        return removed_data
+
+    def remove_from_position(self, position):
+        """Remove an element from the ith position (0-based index)."""
+        if position == 0:
+            return self.remove_from_beginning()
+        
+        current = self.head
+        for _ in range(position - 1):
+            if current is None or current.next is None:
+                raise IndexError("Position out of bounds")
+            current = current.next
+
+        if current.next is None:
+            raise IndexError("Position out of bounds")
+        
+        removed_data = current.next.data
+        current.next = current.next.next
+        return removed_data
+
+    def search(self, x):
+        """Search for an element x and return its node."""
+        current = self.head
+        while current:
+            if current.data == x:
+                return current
+            current = current.next
+        return None
+
+    def display(self):
+        """Display the elements of the list."""
+        elements = []
+        current = self.head
+        while current:
+            elements.append(current.data)
+            current = current.next
+        print("Linked List:", elements)
+
+
+# Example Usage
+if __name__ == "__main__":
+    sll = SinglyLinkedList()
+    sll.insert_at_beginning(10)
+    sll.insert_at_beginning(20)
+    sll.insert_at_position(30, 1)  # Insert at 1st position
+    sll.display()  # Should display [20, 30, 10]
+    sll.remove_from_beginning()  # Removes 20
+    sll.display()  # Should display [30, 10]
+    sll.remove_from_position(1)  # Removes 10
+    sll.display()  # Should display [30]
+    node = sll.search(30)  # Should return the node containing 30
+    print("Found:", node.data if node else "Not Found")
+
+
+
+
+
+
+
+7.	Write a program to implement insert and search operation in AVL trees. 
+
+class Node:
+    """Class representing a node in an AVL tree."""
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+        self.height = 1  # Height of this node for balancing
+
+
+class AVLTree:
+    """Class representing an AVL Tree."""
+    
+    def insert(self, root, key):
+        """Insert a key into the AVL tree and balance it."""
+        # Perform standard BST insertion
+        if not root:
+            return Node(key)
+        elif key < root.key:
+            root.left = self.insert(root.left, key)
+        else:
+            root.right = self.insert(root.right, key)
+        
+        # Update the height of this ancestor node
+        root.height = 1 + max(self.get_height(root.left), self.get_height(root.right))
+        
+        # Get the balance factor to check whether this node became unbalanced
+        balance = self.get_balance(root)
+        
+        # If unbalanced, there are 4 cases to handle
+        
+        # Case 1 - Left Left
+        if balance > 1 and key < root.left.key:
+            return self.right_rotate(root)
+        
+        # Case 2 - Right Right
+        if balance < -1 and key > root.right.key:
+            return self.left_rotate(root)
+        
+        # Case 3 - Left Right
+        if balance > 1 and key > root.left.key:
+            root.left = self.left_rotate(root.left)
+            return self.right_rotate(root)
+        
+        # Case 4 - Right Left
+        if balance < -1 and key < root.right.key:
+            root.right = self.right_rotate(root.right)
+            return self.left_rotate(root)
+        
+        return root  # Return the (unchanged) root pointer
+    
+    def search(self, root, key):
+        """Search for a key in the AVL tree."""
+        if not root or root.key == key:
+            return root
+        elif key < root.key:
+            return self.search(root.left, key)
+        else:
+            return self.search(root.right, key)
+    
+    # Helper functions
+    def get_height(self, node):
+        """Get the height of a node."""
+        if not node:
+            return 0
+        return node.height
+
+    def get_balance(self, node):
+        """Get the balance factor of a node."""
+        if not node:
+            return 0
+        return self.get_height(node.left) - self.get_height(node.right)
+
+    def left_rotate(self, z):
+        """Perform a left rotation."""
+        y = z.right
+        T2 = y.left
+        
+        # Perform rotation
+        y.left = z
+        z.right = T2
+        
+        # Update heights
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+        
+        # Return the new root
+        return y
+
+    def right_rotate(self, z):
+        """Perform a right rotation."""
+        y = z.left
+        T3 = y.right
+        
+        # Perform rotation
+        y.right = z
+        z.left = T3
+        
+        # Update heights
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+        
+        # Return the new root
+        return y
+    
+    def pre_order(self, root):
+        """Utility function to print the tree in pre-order traversal."""
+        if root:
+            print(root.key, end=" ")
+            self.pre_order(root.left)
+            self.pre_order(root.right)
+
+
+# Example Usage
+if __name__ == "__main__":
+    avl = AVLTree()
+    root = None
+
+    # Insert elements
+    keys = [10, 20, 30, 40, 50, 25]
+    for key in keys:
+        root = avl.insert(root, key)
+    
+    print("Preorder Traversal of the AVL Tree:")
+    avl.pre_order(root)
+    print()
+
+    # Search for elements
+    search_key = 25
+    result = avl.search(root, search_key)
+    if result:
+        print(f"Element {search_key} found in the AVL tree.")
+    else:
+        print(f"Element {search_key} not found in the AVL tree.")
+
+
+
+
+
+
+5.	Implement Queue as an ADT.
+class Queue:
+    """Class representing a Queue ADT."""
+    def __init__(self):
+        self.items = []
+
+    def enqueue(self, item):
+        """Add an item to the rear of the queue."""
+        self.items.append(item)
+
+    def dequeue(self):
+        """Remove and return the item from the front of the queue."""
+        if self.is_empty():
+            raise IndexError("Dequeue from an empty queue")
+        return self.items.pop(0)
+
+    def peek(self):
+        """Get the front item of the queue without removing it."""
+        if self.is_empty():
+            return None
+        return self.items[0]
+
+    def is_empty(self):
+        """Check if the queue is empty."""
+        return len(self.items) == 0
+
+    def size(self):
+        """Get the number of items in the queue."""
+        return len(self.items)
+
+    def display(self):
+        """Display the items in the queue."""
+        print("Queue:", self.items)
+
+
+# Example Usage
+if __name__ == "__main__":
+    queue = Queue()
+
+    # Enqueue elements
+    queue.enqueue(10)
+    queue.enqueue(20)
+    queue.enqueue(30)
+    print("After enqueuing 10, 20, 30:")
+    queue.display()
+
+    # Peek at the front element
+    print(f"Front element: {queue.peek()}")
+
+    # Dequeue elements
+    print(f"Dequeued: {queue.dequeue()}")
+    print(f"Dequeued: {queue.dequeue()}")
+
+    # Display the queue after dequeuing
+    print("After dequeuing two elements:")
+    queue.display()
+
+    # Check if the queue is empty
+    print(f"Is the queue empty? {queue.is_empty()}")
+
+    # Enqueue another element
+    queue.enqueue(40)
+    print("After enqueuing 40:")
+    queue.display()
+
+
+
+
+
+
+
+
+6.	Write a program to implement Binary Search Tree as an ADT which supports the following operations:
+i.	Insert an element x
+ii.	Delete an element x
+iii.	Search for an element x in the BST 
+iv.	Display the elements of the BST in preorder, inorder, and postorder traversal
+
+class Node:
+    """Class representing a node in a BST."""
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+
+
+class BinarySearchTree:
+    """Class representing a Binary Search Tree."""
+    def __init__(self):
+        self.root = None
+
+    def insert(self, root, key):
+        """Insert an element into the BST."""
+        if root is None:
+            return Node(key)
+        elif key < root.key:
+            root.left = self.insert(root.left, key)
+        else:
+            root.right = self.insert(root.right, key)
+        return root
+
+    def delete(self, root, key):
+        """Delete an element from the BST."""
+        if root is None:
+            return root
+
+        if key < root.key:
+            root.left = self.delete(root.left, key)
+        elif key > root.key:
+            root.right = self.delete(root.right, key)
+        else:
+            # Node with one or no child
+            if root.left is None:
+                return root.right
+            elif root.right is None:
+                return root.left
+
+            # Node with two children: Get the inorder successor (smallest in the right subtree)
+            min_larger_node = self.find_min(root.right)
+            root.key = min_larger_node.key
+            root.right = self.delete(root.right, min_larger_node.key)
+
+        return root
+
+    def search(self, root, key):
+        """Search for an element in the BST."""
+        if root is None or root.key == key:
+            return root
+        if key < root.key:
+            return self.search(root.left, key)
+        return self.search(root.right, key)
+
+    def inorder(self, root):
+        """Inorder traversal of the BST."""
+        if root:
+            self.inorder(root.left)
+            print(root.key, end=" ")
+
+    def preorder(self, root):
+        """Preorder traversal of the BST."""
+        if root:
+            print(root.key, end=" ")
+            self.preorder(root.left)
+            self.preorder(root.right)
+
+    def postorder(self, root):
+        """Postorder traversal of the BST."""
+        if root:
+            self.postorder(root.left)
+            self.postorder(root.right)
+            print(root.key, end=" ")
+
+    def find_min(self, root):
+        """Find the node with the minimum key value in the BST."""
+        current = root
+        while current.left is not None:
+            current = current.left
+        return current
+
+
+# Example Usage
+if __name__ == "__main__":
+    bst = BinarySearchTree()
+    root = None
+
+    # Insert elements
+    elements = [50, 30, 70, 20, 40, 60, 80]
+    for el in elements:
+        root = bst.insert(root, el)
+
+    print("Inorder Traversal (sorted):")
+    bst.inorder(root)
+    print("\nPreorder Traversal:")
+    bst.preorder(root)
+    print("\nPostorder Traversal:")
+    bst.postorder(root)
+
+    # Search for an element
+    key_to_search = 40
+    result = bst.search(root, key_to_search)
+    print(f"\n\nSearching for {key_to_search}: {'Found' if result else 'Not Found'}")
+
+    # Delete an element
+    key_to_delete = 50
+    print(f"\nDeleting {key_to_delete}...")
+    root = bst.delete(root, key_to_delete)
+
+    print("Inorder Traversal after deletion:")
+    bst.inorder(root)
+
+
+
+
+
+
+
+4.	Implement Stack as an ADT and use it to evaluate a prefix/postfix expression.
+
+class Stack:
+    """Class representing a Stack ADT."""
+    def __init__(self):
+        self.items = []
+
+    def push(self, item):
+        """Push an item onto the stack."""
+        self.items.append(item)
+
+    def pop(self):
+        """Pop an item from the stack."""
+        if self.is_empty():
+            raise IndexError("Pop from an empty stack")
+        return self.items.pop()
+
+    def peek(self):
+        """Peek at the top item of the stack."""
+        if self.is_empty():
+            return None
+        return self.items[-1]
+
+    def is_empty(self):
+        """Check if the stack is empty."""
+        return len(self.items) == 0
+
+    def size(self):
+        """Get the size of the stack."""
+        return len(self.items)
+
+
+def evaluate_postfix(expression):
+    """Evaluate a postfix expression using the stack."""
+    stack = Stack()
+    operators = {'+', '-', '*', '/', '^'}
+
+    for token in expression.split():
+        if token.isdigit():  # Operand
+            stack.push(int(token))
+        elif token in operators:  # Operator
+            if stack.size() < 2:
+                raise ValueError("Invalid postfix expression")
+            b = stack.pop()
+            a = stack.pop()
+            result = evaluate(a, b, token)
+            stack.push(result)
+        else:
+            raise ValueError(f"Invalid token: {token}")
+
+    if stack.size() != 1:
+        raise ValueError("Invalid postfix expression")
+    return stack.pop()
+
+
+def evaluate_prefix(expression):
+    """Evaluate a prefix expression using the stack."""
+    stack = Stack()
+    operators = {'+', '-', '*', '/', '^'}
+
+    # Process the expression from right to left
+    for token in reversed(expression.split()):
+        if token.isdigit():  # Operand
+            stack.push(int(token))
+        elif token in operators:  # Operator
+            if stack.size() < 2:
+                raise ValueError("Invalid prefix expression")
+            a = stack.pop()
+            b = stack.pop()
+            result = evaluate(a, b, token)
+            stack.push(result)
+        else:
+            raise ValueError(f"Invalid token: {token}")
+
+    if stack.size() != 1:
+        raise ValueError("Invalid prefix expression")
+    return stack.pop()
+
+
+def evaluate(a, b, operator):
+    """Perform the calculation based on the operator."""
+    if operator == '+':
+        return a + b
+    elif operator == '-':
+        return a - b
+    elif operator == '*':
+        return a * b
+    elif operator == '/':
+        return a // b if b != 0 else float('inf')  # Integer division
+    elif operator == '^':
+        return a ** b
+    else:
+        raise ValueError(f"Unsupported operator: {operator}")
+
+
+# Example Usage
+if __name__ == "__main__":
+    postfix_expression = "5 3 + 8 2 - *"
+    prefix_expression = "* + 5 3 - 8 2"
+
+    print("Evaluating Postfix Expression:")
+    print(f"Expression: {postfix_expression}")
+    result = evaluate_postfix(postfix_expression)
+    print(f"Result: {result}")
+
+    print("\nEvaluating Prefix Expression:")
+    print(f"Expression: {prefix_expression}")
+    result = evaluate_prefix(prefix_expression)
+    print(f"Result: {result}")
+
+
+
+
+
+
+3.	Write a program to implement circular linked list as an ADT which supports the following operations:
+i.	Insert an element x in the list
+ii.	Remove an element from the list
+iii.	Search for an element x in the list and return its pointer
+
+class Node:
+    """Class representing a node in a circular linked list."""
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class CircularLinkedList:
+    """Class representing a circular linked list."""
+    def __init__(self):
+        self.last = None  # Pointer to the last node
+
+    def insert(self, data):
+        """Insert an element into the circular linked list."""
+        new_node = Node(data)
+        if self.last is None:
+            # First node in the list
+            self.last = new_node
+            self.last.next = new_node
+        else:
+            # Insert after the last node
+            new_node.next = self.last.next
+            self.last.next = new_node
+            self.last = new_node
+
+    def remove(self, key):
+        """Remove an element from the circular linked list."""
+        if self.last is None:
+            print("List is empty. Cannot delete.")
+            return
+
+        current = self.last.next
+        prev = self.last
+
+        while True:
+            if current.data == key:
+                if current == self.last and current.next == self.last:
+                    # Single node in the list
+                    self.last = None
+                elif current == self.last:
+                    # Deleting the last node
+                    prev.next = self.last.next
+                    self.last = prev
+                else:
+                    # Deleting any other node
+                    prev.next = current.next
+                print(f"Deleted {key} from the list.")
+                return
+            prev = current
+            current = current.next
+            if current == self.last.next:
+                break
+
+        print(f"Element {key} not found in the list.")
+
+    def search(self, key):
+        """Search for an element in the circular linked list and return its pointer."""
+        if self.last is None:
+            return None
+
+        current = self.last.next
+        while True:
+            if current.data == key:
+                return current
+            current = current.next
+            if current == self.last.next:
+                break
+
+        return None
+
+    def display(self):
+        """Display the elements of the circular linked list."""
+        if self.last is None:
+            print("List is empty.")
+            return
+
+        current = self.last.next
+        while True:
+            print(current.data, end=" -> ")
+            current = current.next
+            if current == self.last.next:
+                break
+        print("(back to start)")
+
+
+# Example Usage
+if __name__ == "__main__":
+    cll = CircularLinkedList()
+
+    # Insert elements
+    cll.insert(10)
+    cll.insert(20)
+    cll.insert(30)
+    print("After inserting 10, 20, 30:")
+    cll.display()
+
+    # Search for an element
+    key_to_search = 20
+    result = cll.search(key_to_search)
+    if result:
+        print(f"Element {key_to_search} found.")
+    else:
+        print(f"Element {key_to_search} not found.")
+
+    # Remove an element
+    cll.remove(20)
+    print("After removing 20:")
+    cll.display()
+
+    # Try removing an element not in the list
+    cll.remove(40)
+
+    # Display the list
+    print("Final list:")
+    cll.display()
+
+
+
+
+
+
+2.	Write a program to implement doubly linked list as an ADT that supports the following operations:
+i.	Insert an element x at the beginning of the doubly linked list
+ii.	Insert an element x at the end of the doubly linked list
+iii.	Remove an element from the beginning of the doubly linked list
+iv.	Remove an element from the end of the doubly linked list
+
+class Node:
+    """Class representing a node in a doubly linked list."""
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+        self.prev = None
+
+
+class DoublyLinkedList:
+    """Class representing a doubly linked list."""
+    def __init__(self):
+        self.head = None
+
+    def insert_at_beginning(self, data):
+        """Insert an element at the beginning of the doubly linked list."""
+        new_node = Node(data)
+        if self.head is None:
+            self.head = new_node
+        else:
+            new_node.next = self.head
+            self.head.prev = new_node
+            self.head = new_node
+
+    def insert_at_end(self, data):
+        """Insert an element at the end of the doubly linked list."""
+        new_node = Node(data)
+        if self.head is None:
+            self.head = new_node
+        else:
+            current = self.head
+            while current.next:
+                current = current.next
+            current.next = new_node
+            new_node.prev = current
+
+    def remove_from_beginning(self):
+        """Remove an element from the beginning of the doubly linked list."""
+        if self.head is None:
+            print("List is empty. Cannot remove element.")
+            return
+        if self.head.next is None:
+            self.head = None
+        else:
+            self.head = self.head.next
+            self.head.prev = None
+
+    def remove_from_end(self):
+        """Remove an element from the end of the doubly linked list."""
+        if self.head is None:
+            print("List is empty. Cannot remove element.")
+            return
+        if self.head.next is None:
+            self.head = None
+        else:
+            current = self.head
+            while current.next:
+                current = current.next
+            current.prev.next = None
+
+    def display(self):
+        """Display the elements of the doubly linked list."""
+        if self.head is None:
+            print("List is empty.")
+            return
+        current = self.head
+        while current:
+            print(current.data, end=" <-> ")
+            current = current.next
+        print("None")
+
+
+# Example Usage
+if __name__ == "__main__":
+    dll = DoublyLinkedList()
+
+    # Insert elements at the beginning
+    dll.insert_at_beginning(10)
+    dll.insert_at_beginning(20)
+    dll.insert_at_beginning(30)
+    print("After inserting 30, 20, 10 at the beginning:")
+    dll.display()
+
+    # Insert elements at the end
+    dll.insert_at_end(40)
+    dll.insert_at_end(50)
+    print("After inserting 40, 50 at the end:")
+    dll.display()
+
+    # Remove an element from the beginning
+    dll.remove_from_beginning()
+    print("After removing from the beginning:")
+    dll.display()
+
+    # Remove an element from the end
+    dll.remove_from_end()
+    print("After removing from the end:")
+    dll.display()
